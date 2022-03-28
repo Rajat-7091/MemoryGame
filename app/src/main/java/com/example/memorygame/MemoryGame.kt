@@ -2,7 +2,7 @@ package com.example.memorygame
 
 import com.example.memorygame.utils.DEFAULT_ICONS
 
-class MemoryGame(private val boardSIze: BoardSIze){
+class MemoryGame(private val boardSize: BoardSize){
     val cards: List<MemoryCards>
 
     var numPairsFound = 0
@@ -10,7 +10,7 @@ class MemoryGame(private val boardSIze: BoardSIze){
 
     private  var indexOfStringSelectedCard: Int? = null
     init {
-        val chosenImages : List<Int> = DEFAULT_ICONS.shuffled().take(boardSIze.getNumPair())
+        val chosenImages : List<Int> = DEFAULT_ICONS.shuffled().take(boardSize.getNumPair())
         val randomizedImages : List<Int> = (chosenImages + chosenImages).shuffled()
         cards = randomizedImages.map { MemoryCards(it) }
 
@@ -57,7 +57,7 @@ class MemoryGame(private val boardSIze: BoardSIze){
     }
 
     fun haveWonGame(): Boolean {
-        return numPairsFound == boardSIze.getNumPair()
+        return numPairsFound == boardSize.getNumPair()
     }
 
     fun isCardFaceUp(position: Int): Boolean {

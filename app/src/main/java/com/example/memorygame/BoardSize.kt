@@ -1,6 +1,6 @@
 package com.example.memorygame
 
-enum class BoardSIze(val  numCard : Int){
+enum class BoardSize(val  numCard : Int){
     EASY(numCard = 8),
     MEDIUM(numCard = 18),
     HARD(numCard = 24);
