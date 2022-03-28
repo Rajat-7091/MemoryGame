@@ -1,8 +1,6 @@
 package com.example.memorygame
 
 import android.animation.ArgbEvaluator
-import android.icu.text.CaseMap
-import android.nfc.Tag
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -26,25 +24,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var clRoot: ConstraintLayout
-    private lateinit var rvBord: RecyclerView
+    private lateinit var rvBoard: RecyclerView
     private lateinit var tvNumMoves: TextView
     private lateinit var tvNumPairs: TextView
 
     private lateinit var memoryGame: MemoryGame
     private lateinit var adapter: MemoryBordAdapter
-    private  var boardSIze: BoardSIze = BoardSIze.HARD
+    private var boardSize: BoardSize = BoardSize.HARD
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         clRoot = findViewById(R.id.clRoot)
-        rvBord = findViewById(R.id.rvBord)
+        rvBoard = findViewById(R.id.rvBord)
         tvNumMoves = findViewById(R.id.tvNumMoves)
         tvNumPairs =findViewById(R.id.tvNumPairs)
 
 
-        val chosenImages : List<Int> = DEFAULT_ICONS.shuffled().take(boardSIze.getNumPair())
+        val chosenImages : List<Int> = DEFAULT_ICONS.shuffled().take(boardSize.getNumPair())
         val randomizedImages : List<Int> = (chosenImages + chosenImages).shuffled()
         val memoryCards: List<MemoryCards> = randomizedImages.map { MemoryCards(it) }
 
@@ -62,9 +60,9 @@ class MainActivity : AppCompatActivity() {
             R.id.mi_refresh -> {
                 // setup the game again
                 if (memoryGame.getNumMoves() > 0 && !memoryGame.haveWonGame()) {
-                    showAlertDiaog("Quit your current game?", null, View.OnClickListener {
+                    showAlertDialog("Quit your current game?", null) {
                         setupBoard()
-                    })
+                    }
                 } else {
                     setupBoard()
                 }
@@ -81,53 +79,53 @@ class MainActivity : AppCompatActivity() {
         LayoutInflater.from(this).inflate(R.layout.dialog_board_size,null)
         val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size,null)
         val radioGroupSize = boardSizeView.findViewById<RadioGroup>(R.id.radioGroup)
-        showAlertDiaog("Choose new size ",boardSizeView,View.OnClickListener {
-            // set the new size of the board size
-            when (boardSIze){
-                BoardSIze.EASY -> radioGroupSize.check(R.id.rbEasy)
-                BoardSIze.MEDIUM -> radioGroupSize.check(R.id.rbMedium)
-                BoardSIze.HARD -> radioGroupSize.check(R.id.rbHard)
-            }
-            boardSIze = when (radioGroupSize.checkedRadioButtonId) {
-                R.id.rbEasy -> BoardSIze.EASY
-                R.id.rbMedium -> BoardSIze.MEDIUM
-                else -> BoardSIze.HARD
+        when (boardSize) {
+            BoardSize.EASY -> radioGroupSize.check(R.id.rbEasy)
+            BoardSize.MEDIUM -> radioGroupSize.check(R.id.rbMedium)
+            BoardSize.HARD -> radioGroupSize.check(R.id.rbHard)
+        }
+        showAlertDialog("Choose new size ", boardSizeView) {
+            // This executes when the OK button in the dialog is clicked.
+            boardSize = when (radioGroupSize.checkedRadioButtonId) {
+                R.id.rbEasy -> BoardSize.EASY
+                R.id.rbMedium -> BoardSize.MEDIUM
+                else -> BoardSize.HARD
 
             }
             setupBoard()
-        })
+        }
     }
 
-    private fun showAlertDiaog(title: String,  view: View?,positiveClickListener: View.OnClickListener) {
+    private fun showAlertDialog(title: String, view: View?, onClick: () -> Unit) {
         AlertDialog.Builder(this)
             .setTitle(title)
             .setView(view)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("OK"){ _, _ ->
-                positiveClickListener.onClick(null)
+                onClick()
             }.show()
     }
 
     private fun setupBoard() {
-        when (boardSIze){
-            BoardSIze.EASY -> {
+        when (boardSize){
+            BoardSize.EASY -> {
                 tvNumMoves.text = "Easy: 4 x 2"
                 tvNumPairs.text = "Pairs: 0 / 4"
             }
-            BoardSIze.MEDIUM -> {
+            BoardSize.MEDIUM -> {
                 tvNumMoves.text = "Medium: 6 x 3"
                 tvNumPairs.text = "Pairs: 0 / 9"
             }
-            BoardSIze.HARD -> {
+            BoardSize.HARD -> {
                 tvNumMoves.text = "Hard: 6 x 6"
                 tvNumPairs.text = "Pairs: 0 / 12"
             }
         }
         tvNumPairs.setTextColor(ContextCompat.getColor(this, R.color.color_progress_none))
-        memoryGame = MemoryGame(boardSIze)
+        memoryGame = MemoryGame(boardSize)
         adapter = MemoryBordAdapter(
             this,
-            boardSIze,
+            boardSize,
             memoryGame.cards,
             object : MemoryBordAdapter.CardClickListener {
                 override fun onCardClicked(position: Int) {
@@ -135,9 +133,9 @@ class MainActivity : AppCompatActivity() {
                 }
 
             })
-        rvBord.adapter = adapter
-        rvBord.setHasFixedSize(true)
-        rvBord.layoutManager = GridLayoutManager(this, boardSIze.getWidth())
+        rvBoard.adapter = adapter
+        rvBoard.setHasFixedSize(true)
+        rvBoard.layoutManager = GridLayoutManager(this, boardSize.getWidth())
     }
     private fun updateGameWithFlip(position: Int) {
         // Error checking
@@ -155,12 +153,12 @@ class MainActivity : AppCompatActivity() {
         if (memoryGame.flipCard(position)){
             Log.i(TAG,"found a match! num pairs found: ${memoryGame.numPairsFound}")
             val color = ArgbEvaluator().evaluate(
-              memoryGame.numPairsFound.toFloat() / boardSIze.getNumPair(),
+              memoryGame.numPairsFound.toFloat() / boardSize.getNumPair(),
               ContextCompat.getColor(this,R.color.color_progress_none),
                 ContextCompat.getColor(this,R.color.color_progress_full),
             ) as Int
             tvNumPairs.setTextColor(color)
-            tvNumPairs.text = "pairs:${memoryGame.numPairsFound} / ${boardSIze.getNumPair()}"
+            tvNumPairs.text = "pairs:${memoryGame.numPairsFound} / ${boardSize.getNumPair()}"
             if (memoryGame.haveWonGame()){
                 Snackbar.make(clRoot,"Congratulations! You WON.",Snackbar.LENGTH_LONG).show()
             }
