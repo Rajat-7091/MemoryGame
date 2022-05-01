@@ -1,6 +1,7 @@
 package com.example.memorygame
 
 import android.animation.ArgbEvaluator
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -16,11 +17,14 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygame.utils.DEFAULT_ICONS
+import com.example.memorygame.utils.EXTRA_BOARD_SIZE
 import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
     companion object{
+
         private const val TAG = "MainActivity"
+        private const val CREATE_REQUEST_CODE = 1706
     }
 
     private lateinit var clRoot: ConstraintLayout
@@ -30,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var memoryGame: MemoryGame
     private lateinit var adapter: MemoryBordAdapter
-    private var boardSize: BoardSize = BoardSize.HARD
+    private var boardSize: BoardSize = BoardSize.EASY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +53,7 @@ class MainActivity : AppCompatActivity() {
 
         setupBoard()
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -70,6 +75,9 @@ class MainActivity : AppCompatActivity() {
             R.id.mi_new_size ->{
                 showNewSizeDialog()
                 return true
+            }
+            R.id.mi_custom-> {
+                showCreationDialog()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -104,6 +112,25 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("OK"){ _, _ ->
                 onClick()
             }.show()
+    }
+
+    private fun showCreationDialog() {
+        val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size,null)
+        val radioGroupSize = boardSizeView.findViewById<RadioGroup>(R.id.radioGroup)
+        showAlertDialog("Create your own memory board ", boardSizeView) {
+            // This executes when the OK button in the dialog is clicked.
+            val desiredBoardSize : BoardSize = when (radioGroupSize.checkedRadioButtonId) {
+                R.id.rbEasy -> BoardSize.EASY
+                R.id.rbMedium -> BoardSize.MEDIUM
+                else -> BoardSize.HARD
+
+            }
+            // Navigate the user to new activity
+            val intent = Intent(this, CreateActivity::class.java)
+            intent.putExtra(EXTRA_BOARD_SIZE, desiredBoardSize)
+            startActivityForResult(intent, CREATE_REQUEST_CODE)
+        }
+
     }
 
     private fun setupBoard() {
